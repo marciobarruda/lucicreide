@@ -1,0 +1,2563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucicreide - Rotina do Bebê</title>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&family=Indie+Flower&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%23ff6b81' d='M448 352H64c-35.3 0-64-28.7-64-64V160c0-13.3 10.7-24 24-24h43.1C89.3 125.4 96 111.4 96 96c0-35.3 28.7-64 64-64h192c35.3 0 64 28.7 64 64 0 15.4 6.7 29.4 28.9 40H488c13.3 0 24 10.7 24 24v128c0 35.3-28.7 64-64 64zM160 416a64 64 0 1 0 0 128 64 64 0 1 0 0-128zm256 0a64 64 0 1 0 0 128 64 64 0 1 0 0-128z'/></svg>">
+
+    <style>
+        :root {
+            /* Theme Variables (Dynamic based on baby gender) */
+            --primary-bg: #f8e5f0;
+            --secondary-bg: #e5f0f9;
+            --accent-color: #ff6b81;
+            --accent-hover: #ff4757;
+
+            /* Persistent Colors */
+            --text-dark: #2f3542;
+            --text-light: #747d8c;
+            --card-bg: rgba(255, 255, 255, 0.75);
+            --card-border: rgba(255, 255, 255, 0.5);
+            --success-color: #2ed573;
+
+            /* Event Colors */
+            --color-soneca-play: #2ed573;
+            --color-soneca-stop: #ff4757;
+            --color-soneca: #70a1ff;
+            --color-banho: #1e90ff;
+            --color-alimentacao: #ffa502;
+            --color-evacuacao: #8d6e63;
+
+            /* Shadows & Radius */
+            --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+
+            /* Typography */
+            --font-heading: 'Outfit', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        /* Theming Classes (Applied to body) */
+        body.theme-F {
+            --primary-bg: #fce4ec;
+            --secondary-bg: #ede7f6;
+            --accent-color: #e91e8c;
+            --accent-hover: #c2185b;
+        }
+
+        body.theme-M {
+            --primary-bg: #e0f7fa;
+            --secondary-bg: #e8f5e9;
+            --accent-color: #0abde3;
+            --accent-hover: #0984e3;
+        }
+
+        body.theme-N {
+            --primary-bg: #fff2cc;
+            --secondary-bg: #fce4ec;
+            --accent-color: #fdcb6e;
+            --accent-hover: #e17055;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-bg) 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.8s ease;
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Typography */
+        h1,
+        h2,
+        h3 {
+            font-family: var(--font-heading);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+
+        .mb-3 {
+            margin-bottom: 1rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+
+        .p-3 {
+            padding: 1.5rem;
+        }
+
+        .text-light {
+            color: var(--text-light);
+        }
+
+        /* App Container */
+        #app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.4s ease-out forwards;
+            height: 100%;
+            padding-bottom: 40px;
+            /* space for scrolling */
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hero / Welcome */
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 10vh 0 30px 0;
+        }
+
+        .app-logo {
+            font-size: 3.5rem;
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            color: var(--accent-color);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 15px 25px;
+            border-radius: var(--radius-full);
+            border: none;
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--accent-color);
+            border: 2px solid var(--accent-color);
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            box-shadow: none;
+            font-size: 0.95rem;
+            text-decoration: underline;
+            padding: 10px;
+        }
+
+        /* Auth Forms */
+        .auth-card {
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .auth-switch {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .auth-tab {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* header */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            color: var(--text-dark);
+            /* Alterado de white para legibilidade */
+            padding-top: 3rem;
+            /* Compensar margin top do app-content e dar respiro p notch */
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            width: 45px;
+            height: 45px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .profile-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .profile-obj {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--card-bg);
+            padding: 10px 20px;
+            border-radius: var(--radius-full);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Galeria & Fotografias */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 10px;
+            padding-bottom: 40px;
+        }
+
+        .polaroid {
+            background: #fff;
+            padding: 10px;
+            padding-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+
+        .polaroid:nth-child(even) {
+            transform: rotate(2deg);
+        }
+
+        .polaroid:hover {
+            transform: rotate(0deg) scale(1.05);
+            z-index: 10;
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            background: #eee;
+            border: 1px solid #ddd;
+        }
+
+        .polaroid-caption {
+            position: absolute;
+            bottom: 12px;
+            left: 10px;
+            right: 10px;
+            text-align: center;
+            font-family: 'Indie Flower', cursive;
+            font-size: 1rem;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .polaroid-date {
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            font-size: 0.65rem;
+            color: #999;
+            font-family: var(--font-body);
+        }
+
+        .btn-floating-gallery {
+            position: fixed;
+            bottom: 150px;
+            /* Elevado para não cobrir os Action Cards de navegação */
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            z-index: 50;
+            transition: transform 0.2s;
+        }
+
+        .btn-floating-gallery:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
+
+        /* Babá Grid */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .action-card {
+            padding: 30px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .action-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .action-card i {
+            font-size: 2.5rem;
+            transition: transform 0.3s;
+        }
+
+        .action-card span {
+            font-family: var(--font-heading);
+            font-weight: 600;
+        }
+
+        .c-banho {
+            color: var(--color-banho);
+        }
+
+        .c-alimentacao {
+            color: var(--color-alimentacao);
+        }
+
+        .c-evacuacao {
+            color: var(--color-evacuacao);
+        }
+
+        /* Soneca Toggle Logic */
+        .c-soneca {
+            color: var(--color-soneca);
+        }
+
+        .card-soneca[data-active="true"] {
+            background: rgba(46, 213, 115, 0.1);
+            border-color: rgba(46, 213, 115, 0.4);
+            animation: pulse-border 2s infinite;
+        }
+
+        .card-soneca[data-active="true"] i {
+            color: var(--success-color);
+            animation: pulse-icon 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% {
+                box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(46, 213, 115, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(46, 213, 115, 0);
+            }
+        }
+
+        @keyframes pulse-icon {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+        }
+
+        .input-modern {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            /* Garante que o padding não estoure a margem */
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.8);
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(var(--accent-color), 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Foto Preview Container */
+        .foto-preview-container {
+            width: 100%;
+            height: 250px;
+            border: 2px dashed #ccc;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .foto-preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain !important;
+            display: none;
+            background: transparent;
+        }
+
+        .foto-preview-placeholder {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: flex-end;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            background: #fff;
+            border-top-left-radius: 30px;
+            border-top-right-radius: 30px;
+            padding: 30px 25px;
+            transform: translateY(100%);
+            animation: slideUp 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-close {
+            background: var(--secondary-bg);
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            color: var(--text-dark);
+        }
+
+        .conditional-field {
+            display: none;
+        }
+
+        .conditional-field.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        /* Pais Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin-top: 20px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.9);
+            z-index: 2;
+        }
+
+        .timeline-card {
+            padding: 18px;
+        }
+
+        .timeline-time {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .timeline-title {
+            font-family: var(--font-heading);
+            font-size: 1.15rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .timeline-duration {
+            font-size: 0.85rem;
+            font-weight: normal;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+
+        .timeline-desc {
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        /* Galeria de Fotos */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 10px;
+            padding-bottom: 90px;
+        }
+
+        .polaroid {
+            background: #fff;
+            padding: 10px;
+            padding-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transform: rotate(-2deg);
+            transition: transform 0.3s;
+        }
+
+        .polaroid:nth-child(even) {
+            transform: rotate(2deg);
+        }
+
+        .polaroid:hover {
+            transform: scale(1.05) rotate(0deg);
+        }
+
+        .polaroid img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 1px solid #eee;
+        }
+
+        .polaroid-caption {
+            position: absolute;
+            bottom: 15px;
+            left: 10px;
+            right: 10px;
+            text-align: center;
+            font-family: 'Indie Flower', cursive, var(--font-body);
+            font-size: 1rem;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .polaroid-date {
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+            font-size: 0.7rem;
+            color: #999;
+        }
+
+        .btn-floating-gallery {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: none;
+            cursor: pointer;
+            z-index: 50;
+            transition: transform 0.2s;
+        }
+
+        .btn-floating-gallery:active {
+            transform: scale(0.9);
+        }
+
+        /* Foto Preview e Canvas Upload */
+        .foto-preview-container {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px dashed rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .foto-preview-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .foto-preview-placeholder {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        #foto-input {
+            display: none;
+        }
+
+        /* Event Type Styling for Timeline */
+        .type-soneca::before {
+            background: var(--color-soneca);
+        }
+
+        .type-soneca .timeline-title {
+            color: var(--color-soneca);
+        }
+
+        .type-banho::before {
+            background: var(--color-banho);
+        }
+
+        .type-banho .timeline-title {
+            color: var(--color-banho);
+        }
+
+        .type-alimentacao::before {
+            background: var(--color-alimentacao);
+        }
+
+        .type-alimentacao .timeline-title {
+            color: var(--color-alimentacao);
+        }
+
+        .type-evacuacao::before {
+            background: var(--color-evacuacao);
+        }
+
+        .type-evacuacao .timeline-title {
+            color: var(--color-evacuacao);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .status-comeu_tudo {
+            background: #e8f8f5;
+            color: #1abc9c;
+        }
+
+        .status-deixou {
+            background: #fef5e7;
+            color: #f39c12;
+        }
+
+        .status-recusou {
+            background: #fdedec;
+            color: #e74c3c;
+        }
+
+        /* Loader & Toasts */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .loader-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 45px;
+            height: 45px;
+            border: 4px solid var(--secondary-bg);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text-dark);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 500;
+            transition: bottom 0.4s;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            bottom: 30px;
+        }
+
+        .toast.success {
+            background: var(--success-color);
+        }
+
+        .toast.error {
+            background: #eb2f06;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+
+<body class="theme-N"> <!-- default neutral theme -->
+
+    <div id="app-container">
+
+        <!-- Tela 1: Boas-Vindas / Seleção Inicial -->
+        <div id="screen-welcome" class="screen main-app-ui active">
+            <div
+                style="height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: var(--text-dark);">
+                <i class="fas fa-baby-carriage fa-5x mb-4"></i>
+                <h1 class="font-outfit" style="font-size: 2.5rem; margin-bottom: 0.5rem;">Lucicreide</h1>
+                <p class="font-inter mb-5" style="opacity: 0.8; max-width: 80%; margin-bottom: 3rem !important;">O
+                    caderninho inteligente do seu bebê.
+                </p>
+
+                <div style="width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 15px;">
+                    <button class="btn btn-primary" onclick="showLoginTab('baba')"><i class="fa-solid fa-clipboard-user"
+                            style="margin-right: 8px;"></i> Sou a Babá</button>
+                    <button class="btn btn-primary" style="background:#5B6B8A;" onclick="showLoginTab('pais')"><i
+                            class="fa-solid fa-house-chimney-user" style="margin-right: 8px;"></i> Somos os
+                        Pais</button>
+                    <!-- Cadastrar trocado pelo Convite -->
+                    <button class="btn btn-outline" style="background:#fff; margin-top: 10px;"
+                        onclick="openTokenModal()"><i class="fas fa-key" style="margin-right: 8px;"></i> Tenho um
+                        Convite</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tela 2: Autenticação (Login) -->
+        <div id="screen-auth" class="screen">
+            <div class="app-header">
+                <button class="back-btn" onclick="navigateTo('screen-welcome')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+                <h2 id="auth-title">Acesso</h2>
+                <div style="width:45px"></div>
+            </div>
+
+            <div class="auth-card glass">
+                <!-- Tabs Internas (Visual apenas) -->
+                <div class="auth-switch">
+                    <div class="auth-tab" id="tab-login-baba" onclick="showLoginTab('baba')">Babá</div>
+                    <div class="auth-tab" id="tab-login-pais" onclick="showLoginTab('pais')">Pais</div>
+                </div>
+
+                <form id="form-login" onsubmit="handleLogin(event)">
+                    <input type="hidden" id="login-role" value="baba">
+
+                    <div class="form-group">
+                        <label class="form-label">E-mail Cadastrado:</label>
+                        <input type="email" id="login-email" class="form-control" required placeholder="seu@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Senha:</label>
+                        <input type="password" id="login-senha" class="form-control" required placeholder="****">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-2">
+                        <i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar
+                    </button>
+                </form>
+
+                <button type="button" class="btn-link" onclick="openForgotModal()">Esqueci minha senha</button>
+
+            </div>
+        </div>
+
+        <!-- Tela 4: Cadastro da Família Completa (Atrás do Token) -->
+        <div id="screen-cadastro" class="screen">
+            <div class="app-header">
+                <button class="back-btn" onclick="navigateTo('screen-welcome')"><i
+                        class="fa-solid fa-arrow-left"></i></button>
+            </div>
+            <div class="app-content pt-4">
+                <h2 class="font-outfit text-center mb-4" style="color: var(--text-dark);">Configurar Família</h2>
+
+                <form id="cadastro-form" onsubmit="submitCadastro(event)">
+
+                    <div class="glass p-3 mb-4">
+                        <h3 class="font-outfit mb-3" style="font-size: 1.1rem; color: var(--text-dark);"><i
+                                class="fas fa-female"></i> Dados da Mãe</h3>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Nome da Mãe</label>
+                            <input type="text" id="cad-mae-nome" class="form-control" placeholder="Seu nome" required>
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label">E-mail (Login Principal)</label>
+                            <input type="email" id="cad-mae-email" class="form-control" placeholder="E-mail da mãe"
+                                required>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="form-label">Senha</label>
+                            <input type="password" id="cad-mae-senha" class="form-control" placeholder="Senha da mãe"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="glass p-3 mb-4">
+                        <h3 class="font-outfit mb-3" style="font-size: 1.1rem; color: var(--text-dark); opacity: 0.8;">
+                            <i class="fas fa-male"></i>
+                            Dados do Pai (Opc)
+                        </h3>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Nome do Pai</label>
+                            <input type="text" id="cad-pai-nome" class="form-control" placeholder="Nome do pai">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label">E-mail (Login do Pai)</label>
+                            <input type="email" id="cad-pai-email" class="form-control" placeholder="E-mail do pai">
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="form-label">Senha do Pai</label>
+                            <input type="password" id="cad-pai-senha" class="form-control" placeholder="Senha do pai">
+                        </div>
+                    </div>
+
+                    <div class="glass p-3 mb-4">
+                        <h3 class="font-outfit mb-3" style="font-size: 1.1rem; color: var(--text-dark); opacity: 0.8;">
+                            <i class="fas fa-hand-holding-heart"></i> Babá (Opcional)
+                        </h3>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Nome da Babá</label>
+                            <input type="text" id="cad-baba-nome" class="form-control" placeholder="Nome da babá">
+                        </div>
+                        <div class="form-group mb-3">
+                            <label class="form-label">E-mail (Login da Babá)</label>
+                            <input type="email" id="cad-baba-email" class="form-control" placeholder="E-mail da babá">
+                        </div>
+                        <div class="form-group mb-2">
+                            <label class="form-label">Senha da Babá</label>
+                            <input type="password" id="cad-baba-senha" class="form-control" placeholder="Senha da babá">
+                        </div>
+                    </div>
+
+                    <div class="glass p-3 mb-4">
+                        <h3 class="font-outfit mb-3" style="font-size: 1.1rem; color: var(--text-dark);"><i
+                                class="fas fa-baby"></i>
+                            Bebê</h3>
+                        <div class="form-group mb-3">
+                            <label class="form-label">Nome do Bebê</label>
+                            <input type="text" id="cad-bebe-nome" class="form-control" placeholder="Nome da criança"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Sexo do Bebê</label>
+                            <select id="cad-bebe-sexo" class="form-control" required>
+                                <option value="N">Ainda não sabemos / Neutro</option>
+                                <option value="M">Menino</option>
+                                <option value="F">Menina</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-5">Finalizar Cadastro</button>
+                    <!-- Campo oculto para guardar o Token que destrancou -->
+                    <input type="hidden" id="cad-token-usado" value="">
+                </form>
+            </div>
+        </div>
+
+
+        <!-- Tela 4: Área da Babá Principal -->
+        <div id="screen-baba" class="screen main-app-ui">
+            <!-- Header Babá -->
+            <div class="app-header">
+                <div class="header-content">
+                    <div>
+                        <h1 class="font-outfit" id="baba-welcome">Bem-vinda, Babá!</h1>
+                        <p class="font-inter" style="opacity: 0.8; font-size: 0.9rem;">Rotina do <span
+                                id="lbl-bebe-baba" style="font-weight: 600;">Bebê</span></p>
+                    </div>
+                    <!-- Logout Sair -->
+                    <button class="back-btn" onclick="logout()"
+                        style="background: #2d3436; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><i
+                            class="fa-solid fa-arrow-right-from-bracket"></i> Sair</button>
+                </div>
+            </div>
+
+            <div class="profile-header">
+                <div class="profile-obj">
+                    <div class="profile-avatar"><i class="fa-solid fa-baby"></i></div>
+                    <div>
+                        <h3 id="ui-nome-bebe" style="font-size:1.2rem">Nome Bebê</h3>
+                        <p class="text-light" id="ui-nome-baba" style="font-size:0.9rem; font-weight:500;">Bá: Nome Baba
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center text-light mb-4">Escolha a ação de agora:</p>
+
+            <div class="action-grid">
+                <div class="action-card glass card-soneca" id="btn-soneca" onclick="handleSonecaClick()">
+                    <i class="fa-solid fa-moon c-soneca"></i>
+                    <span id="lbl-soneca">Soneca</span>
+                </div>
+                <div class="action-card glass" onclick="openEventModal('banho')">
+                    <i class="fa-solid fa-bath c-banho"></i>
+                    <span>Banho</span>
+                </div>
+                <div class="action-card glass" onclick="openEventModal('alimentacao')">
+                    <i class="fa-solid fa-utensils c-alimentacao"></i>
+                    <span>Alimentação</span>
+                </div>
+                <div class="action-card glass" onclick="openEventModal('evacuacao')">
+                    <i class="fa-solid fa-poop c-evacuacao"></i>
+                    <span>Fralda</span>
+                </div>
+                <!-- Navegação Acoplada -->
+                <div class="action-card glass" id="nav-btn-home" onclick="switchTab('home')"
+                    style="border: 2px solid var(--accent-color); background: rgba(255,255,255,0.9);">
+                    <i class="fas fa-home" style="color: var(--accent-color);"></i>
+                    <span style="color: var(--accent-color);">Início</span>
+                </div>
+                <div class="action-card glass" id="nav-btn-galeria" onclick="switchTab('galeria')">
+                    <i class="fas fa-images" style="color: var(--text-light);"></i>
+                    <span style="color: var(--text-light);">Galeria</span>
+                </div>
+            </div>
+
+            <!-- Injeção da Linha do Tempo da Babá (Visão de Hoje) -->
+            <div style="padding: 0 20px; margin-top: 30px;">
+                <h4 class="text-light mb-3"
+                    style="font-family: var(--font-outfit); font-size: 1.1rem; border-bottom: 2px solid rgba(255,255,255,0.2); padding-bottom: 5px;">
+                    Registros de Hoje</h4>
+                <div id="baba-timeline-container" class="timeline"></div>
+            </div>
+
+        </div>
+
+        <!-- Tela 5: Área dos Pais -->
+        <div id="screen-pais" class="screen main-app-ui">
+            <div class="app-header" style="padding-bottom: 2rem;">
+                <div class="header-content"
+                    style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                    <div>
+                        <h1 class="font-outfit pb-0" style="font-size: 1.5rem;" id="pais-welcome">Família</h1>
+                        <p class="font-inter pt-0" style="opacity: 0.8; font-size: 0.9rem;">Timeline do Bebê</p>
+                    </div>
+                    <!-- Logout sutil -->
+                    <button class="back-btn" onclick="logout()"
+                        style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.3); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color:#fff; cursor:pointer; backdrop-filter:blur(4px); letter-spacing:0.3px;"><i
+                            class="fa-solid fa-arrow-right-from-bracket"></i> Sair</button>
+                </div>
+            </div>
+            <div class="app-content pt-2 pb-5">
+
+                <div class="profile-header">
+                    <div class="profile-obj" style="margin-bottom:10px; align-items:center;">
+                        <div class="profile-avatar"><i class="fa-solid fa-heart"></i></div>
+                        <div style="flex:1">
+                            <h3 id="ui-nome-bebe-pais" style="font-size:1.2rem">Nome Bebê</h3>
+                            <p class="text-light" id="ui-nome-pais" style="font-size:0.9rem; font-weight:500;">Família
+                            </p>
+                        </div>
+                        <button onclick="openModal('modal-editar-baba')"
+                            style="background:transparent; border:none; padding:10px; cursor:pointer;"
+                            title="Gerenciar Babá">
+                            <i class="fas fa-cog" style="color:var(--text-light); font-size:1.4rem;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass" style="padding: 15px; margin-bottom: 20px;">
+                    <label class="form-label mb-2">Visualizando data:</label>
+                    <input type="date" id="filtro-data" class="form-control" onchange="fetchTimeline()">
+                </div>
+
+                <div id="timeline-container">
+                    <!-- Populated via JS -->
+                    <div class="empty-state">
+                        <div class="spinner" style="margin:0 auto 15px auto;"></div>
+                        <p>Buscando registros...</p>
+                    </div>
+                </div>
+
+                <!-- Navegação Acoplada -->
+                <div class="action-grid mt-4">
+                    <div class="action-card glass" id="nav-btn-home-pais" onclick="switchTab('home')"
+                        style="border: 2px solid var(--accent-color); background: rgba(255,255,255,0.9);">
+                        <i class="fas fa-chart-line" style="color: var(--accent-color);"></i>
+                        <span style="color: var(--accent-color);">Timeline</span>
+                    </div>
+                    <div class="action-card glass" id="nav-btn-galeria-pais" onclick="switchTab('galeria')">
+                        <i class="fas fa-images" style="color: var(--text-light);"></i>
+                        <span style="color: var(--text-light);">Galeria</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             3. TELA DA GALERIA (AMBOS OS PERFIS)
+        =========================================== -->
+        <div id="screen-galeria" class="screen main-app-ui">
+            <header class="app-header">
+                <div class="header-content" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1 class="font-outfit" style="font-size: 1.5rem;">Álbum de Memórias</h1>
+                        <p class="font-inter" style="opacity: 0.8; font-size: 0.9rem;">Momentos especiais</p>
+                    </div>
+                    <div class="header-actions">
+                        <!-- O Botão agora fica acoplado no Header, garantindo que não sobreponha a tela nunca -->
+                        <button onclick="abrirModalGaleria()"
+                            style="background: var(--accent-color); border:none; color:white; width: 45px; height: 45px; border-radius:50%; font-size:1.2rem; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s;">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="app-content">
+                <div id="gallery-container" class="gallery-grid">
+                    <!-- As fotos polaroid entram aqui via JS -->
+                </div>
+
+                <div id="gallery-empty" class="empty-state text-center" style="display: none; margin-top: 3rem;">
+                    <i class="fas fa-camera-retro fa-3x mb-3" style="color: #ccc;"></i>
+                    <p class="font-inter" style="color: #888;">Nenhuma foto neste álbum ainda.</p>
+                </div>
+            </main>
+
+            </main>
+
+            <!-- Navegação Acoplada Inferior -->
+            <div class="action-grid mt-4" style="margin: 0 20px;">
+                <div class="action-card glass" onclick="switchTab('home')">
+                    <i class="fas fa-chevron-left" style="color: var(--text-light);"></i>
+                    <span style="color: var(--text-light);">Voltar</span>
+                </div>
+                <div class="action-card glass" onclick="switchTab('galeria')"
+                    style="border: 2px solid var(--accent-color); background: rgba(255,255,255,0.9);">
+                    <i class="fas fa-images" style="color: var(--accent-color);"></i>
+                    <span style="color: var(--accent-color);">Galeria</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal Genérico para Babá -->
+    <div class="modal-overlay" id="event-modal">
+        <div class="modal-content glass" style="border-radius: 30px 30px 0 0;">
+            <div class="modal-header">
+                <h2 id="modal-title">Registrar</h2>
+                <button class="modal-close" onclick="closeEventModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Formulario Rotina -->
+            <form id="record-form" onsubmit="submitRotina(event)">
+                <input type="hidden" id="f-tipo-evento">
+
+                <div class="form-group">
+                    <label class="form-label">Horário do Evento:</label>
+                    <input type="time" id="f-hora" class="form-control" required>
+                </div>
+
+                <!-- Campos Condicionais: Alimentação -->
+                <div id="fields-alimentacao" class="conditional-field">
+                    <div class="form-group">
+                        <label class="form-label">O que foi oferecido?</label>
+                        <input type="text" id="f-descricao" class="form-control" placeholder="Ex: Papinha de maçã">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">A aceitação foi boa?</label>
+                        <select id="f-aceite" class="form-control" onchange="toggleLeftoverField()">
+                            <option value="">Selecione...</option>
+                            <option value="comeu_tudo">Comeu/Tomou tudo 😍</option>
+                            <option value="deixou">Deixou um pouco 🤔</option>
+                            <option value="recusou">Recusou tudo 😔</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group conditional-field" id="fields-sobra">
+                        <label class="form-label">Sobrou quanto / Queixou do que?</label>
+                        <input type="text" id="f-sobra" class="form-control" placeholder="Ex: Metade do prato">
+                    </div>
+                </div>
+
+                <!-- Campos Condicionais: Evacuação (Fralda) -->
+                <div id="fields-evacuacao" class="conditional-field">
+                    <div class="form-group">
+                        <label class="form-label">Qual foi o tipo?</label>
+                        <select id="f-tipo-evacuacao" class="form-control">
+                            <option value="">Selecione...</option>
+                            <option value="Xixi">Xixi 💧</option>
+                            <option value="Cocô (Pastoso)">Cocô (Pastoso) 💩</option>
+                            <option value="Cocô (Sólido Normal)">Cocô (Sólido Normal) 💩</option>
+                            <option value="Cocô (Sólido Duro)">Cocô (Sólido Duro) 💩</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Campos Condicionais: Soneca -->
+                <div id="fields-soneca" class="conditional-field">
+                    <div class="form-group">
+                        <label class="form-label">O que aconteceu?</label>
+                        <div style="display: flex; gap: 15px; margin-top: 10px;">
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-weight: 500;">
+                                <input type="radio" name="f_soneca_acao" value="dormiu" id="radio-dormiu" required
+                                    oninvalid="this.setCustomValidity('Selecione uma opção')"
+                                    oninput="this.setCustomValidity('')">
+                                <span id="lbl-radio-dormiu">Bebê dormiu</span>
+                            </label>
+                            <label
+                                style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text-light); font-weight: 500;">
+                                <input type="radio" name="f_soneca_acao" value="acordou" id="radio-acordou" required
+                                    oninvalid="this.setCustomValidity('Selecione uma opção')"
+                                    oninput="this.setCustomValidity('')">
+                                <span id="lbl-radio-acordou">Bebê acordou</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Observações extras (opcional):</label>
+                    <textarea id="f-obs" class="form-control" placeholder="Como o bebê estava se sentindo?"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+                    <i class="fa-solid fa-check"></i> Salvar
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Esqueci Senha -->
+    <div class="modal-overlay" id="forgot-modal">
+        <div class="modal-content glass" style="border-radius: 30px 30px 0 0;">
+            <div class="modal-header">
+                <h2>Redefinir Senha</h2>
+                <button class="modal-close" onclick="closeForgotModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="forgot-form" onsubmit="submitForgot(event)">
+                <p class="text-light mb-4" style="font-size:0.95rem">Informe o e-mail exato do seu perfil para forçar a
+                    nova senha.</p>
+
+                <div class="form-group">
+                    <label class="form-label">Seu E-mail Cadastrado:</label>
+                    <input type="email" id="forgot-email" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Nova Senha Escolhida:</label>
+                    <input type="password" id="forgot-senha" class="form-control" required minlength="4">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Atualizar Senha</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Selecionar Criança (Múltiplas Famílias) -->
+    <div class="modal-overlay" id="modal-selecionar-crianca" style="z-index: 9999;">
+        <div class="modal-content glass" style="border-radius: 30px 30px 0 0;">
+            <div class="modal-header">
+                <h2>Qual Criança?</h2>
+                <button class="modal-close" onclick="closeModal('modal-selecionar-crianca')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-light mb-4" style="font-size:0.95rem">Encontramos mais de um bebê vinculado a este perfil.
+                Selecione qual rotina você deseja acessar agora:</p>
+            <div id="lista-criancas-container" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Botões injetados via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Adicionar Foto (Galeria) -->
+    <div class="modal-overlay" id="modal-add-foto">
+        <div class="modal-content glass" style="border-radius: 30px 30px 0 0;">
+            <div class="modal-header">
+                <h2 class="font-outfit">Nova Foto</h2>
+                <button class="modal-close" onclick="closeModal('modal-add-foto')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Carregar Imagem</label>
+                <div class="foto-preview-container" onclick="document.getElementById('foto-input').click()">
+                    <img id="foto-preview-img" src="" alt="Sua Foto">
+                    <div class="foto-preview-placeholder" id="foto-placeholder">
+                        <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i><br>
+                        Toque para abrir a câmera<br>ou escolher da galeria
+                    </div>
+                </div>
+                <!-- Input de arquivo invisível (suporta câmera do celular no mobile) -->
+                <input type="file" id="foto-input" accept="image/*" capture="environment"
+                    onchange="processarImagem(event)" />
+                <!-- Canvas invisível para compressão -->
+                <canvas id="foto-canvas" style="display: none;"></canvas>
+            </div>
+
+            <div class="form-group mt-3">
+                <label class="form-label">Legenda Curta</label>
+                <input type="text" id="foto-legenda" class="form-control" placeholder="Ex: Primeiro sorriso..."
+                    maxlength="30" />
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                <button class="btn btn-outline w-100" onclick="closeModal('modal-add-foto')">Cancelar</button>
+                <button class="btn btn-primary w-100" id="btn-salvar-foto" onclick="salvarFoto()">Salvar Novo
+                    Momento</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Token de Convite -->
+    <div class="modal-overlay" id="modal-token">
+        <div class="modal-content glass" style="border-radius: 30px 30px 0 0;">
+            <div class="modal-header">
+                <h2 class="font-outfit">Código de Convite</h2>
+                <button class="modal-close" onclick="closeTokenModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="form-group mb-3">
+                <p class="font-inter text-center" style="color: #666; font-size: 0.9rem;">
+                    Para criar uma nova família, insira o Token de Convite fornecido.
+                </p>
+                <input type="text" id="token-input" class="form-control text-center text-uppercase"
+                    placeholder="EX: LUCICREIDE123" required style="font-size: 1.2rem; letter-spacing: 2px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                <button class="btn btn-primary w-100" id="btn-validar-token" onclick="validarToken()">Validar
+                    Convite</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Editar Babá -->
+    <div class="modal-overlay" id="modal-editar-baba">
+        <div class="modal-content glass" style="border-radius: 30px 30px 0 0;">
+            <div class="modal-header">
+                <h2 class="font-outfit">Gerenciar Babá</h2>
+                <button class="modal-close" onclick="closeModal('modal-editar-baba')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <p class="text-light mb-4" style="font-size:0.9rem;">Atualize o acesso da babá para esta criança.</p>
+
+            <form id="editar-baba-form" onsubmit="submitEditarBaba(event)">
+                <div class="form-group mb-3">
+                    <label class="form-label">Nome da Babá</label>
+                    <input type="text" id="edit-baba-nome" class="form-control" placeholder="Ex: Maria" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label class="form-label">Email de Acesso</label>
+                    <input type="email" id="edit-baba-email" class="form-control" placeholder="baba@email.com" required>
+                </div>
+                <div class="form-group mb-4">
+                    <label class="form-label">Nova Senha</label>
+                    <input type="password" id="edit-baba-senha" class="form-control" placeholder="****" required
+                        minlength="4">
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary w-100">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Visualizar Foto -->
+    <div class="modal-overlay" id="modal-view-foto" style="z-index: 9900;">
+        <div class="modal-content glass" style="border-radius: 30px 30px 0 0; background: #fff; padding: 20px;">
+            <div class="modal-header" style="margin-bottom: 15px;">
+                <h2 class="font-outfit" id="view-foto-title"
+                    style="font-size: 1.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Momento
+                </h2>
+                <button class="modal-close" onclick="closeModal('modal-view-foto')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div
+                style="width: 100%; height: 350px; overflow: hidden; border-radius: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.05);">
+                <img id="view-foto-img" src="" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+
+            <div id="share-actions-container" style="display: none; flex-direction: column; gap: 10px;">
+                <button class="btn w-100" id="btn-share-foto"
+                    style="background: var(--accent-color); color: white; border: none; font-weight: 600; font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"><i
+                        class="fa-solid fa-share-nodes"></i> Compartilhar Foto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loader global -->
+    <div class="loader-overlay" id="global-loader">
+        <div class="spinner"></div>
+        <p style="margin-top:20px; font-weight:600; color:var(--text-dark)" id="loader-msg">Carregando...</p>
+    </div>
+
+    <!-- Modal Alerta Customizado (Substitui o window.alert) -->
+    <div class="modal-overlay" id="modal-custom-alert"
+        style="z-index: 9999; align-items: center; justify-content: center;">
+        <div class="modal-content glass"
+            style="border-radius: 20px; text-align: center; max-width: 320px; padding: 2rem; transform: scale(1); animation: fadeIn 0.3s ease;">
+            <div id="alert-icon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
+            <h2 class="font-outfit mb-2" id="alert-title" style="font-size: 1.4rem;">Aviso</h2>
+            <p class="font-inter mb-4" id="alert-message" style="color: #666; font-size: 0.95rem;"></p>
+            <button class="btn w-100" id="btn-alert-ok" onclick="closeCustomAlert()"
+                style="font-weight:700; border:none; background: #fff; color: #333 !important; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-radius: 12px; padding: 14px;">Entendi</button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast">Mensagem</div>
+
+
+    <script>
+        // ==========================================
+        // CONFIGURAÇÕES GERAIS E ESTADOS
+        // ==========================================
+
+        // Substitua pelo ENDPOINT correto do seu N8N para AUTENTICAÇÃO
+        const URL_AUTH = 'https://n8ndev.devlogconsultoria.com.br/webhook/login_app_baba';
+        // ENDPOINT correto do seu N8N para ROTINA (GET e POST)
+        const URL_ROTINA = 'https://n8ndev.devlogconsultoria.com.br/webhook/rotina';
+        // ENDPOINT correto do seu N8N para GALERIA DE FOTOS (GET e POST)
+        const URL_GALERIA = 'https://n8ndev.devlogconsultoria.com.br/webhook/galeria';
+        // ENDPOINT correto do seu N8N para VALIDAR TOKEN (GET)
+        const URL_TOKEN = 'https://n8ndev.devlogconsultoria.com.br/webhook/validar_token';
+
+        // Helper para Ambientes Sandbox (Evita Crash de SecurityError)
+        const SafeStorage = (() => {
+            const memory = {};
+            let isAvailable = false;
+            try {
+                const test = '__test__';
+                window.localStorage.setItem(test, test);
+                window.localStorage.removeItem(test);
+                isAvailable = true;
+            } catch (e) {
+                // Em modo Sandbox (iframe sem flag origin), acessar window.localStorage joga erro.
+                console.warn('[Lucicreide] LocalStorage bloqueado pelo ambiente (Sandbox). Usando memória temporária falível.');
+            }
+
+            return {
+                getItem: (k) => {
+                    if (isAvailable) return window.localStorage.getItem(k);
+                    return memory[k] || null;
+                },
+                setItem: (k, v) => {
+                    if (isAvailable) { window.localStorage.setItem(k, v); }
+                    else { memory[k] = String(v); }
+                },
+                removeItem: (k) => {
+                    if (isAvailable) { window.localStorage.removeItem(k); }
+                    delete memory[k];
+                },
+                clear: () => {
+                    if (isAvailable) { window.localStorage.clear(); }
+                    for (let key in memory) delete memory[key];
+                }
+            };
+        })();
+
+        // Estratégia de Fallback Extrema: Usar a URL para salvar o estado
+        const HashStorage = {
+            save: (sessionObj) => {
+                try {
+                    if (sessionObj) {
+                        const str = btoa(encodeURIComponent(JSON.stringify(sessionObj)));
+                        window.history.replaceState(null, null, '#' + str);
+                    } else {
+                        window.history.replaceState(null, null, window.location.pathname + window.location.search);
+                    }
+                } catch (e) { }
+            },
+            load: () => {
+                if (window.location.hash.length > 1) {
+                    try {
+                        return JSON.parse(decodeURIComponent(atob(window.location.hash.substring(1))));
+                    } catch (e) { return null; }
+                }
+                return null;
+            }
+        };
+
+        // Estado Local (Tenta Storage, depois tenta a URL Hash)
+        var session = JSON.parse(SafeStorage.getItem('lucicreide_session') || 'null');
+        if (!session) {
+            session = HashStorage.load();
+            if (session) {
+                console.log('[Lucicreide] Recuperado da URL Hash (Sobreviveu ao Refresh)');
+                SafeStorage.setItem('lucicreide_session', JSON.stringify(session));
+            }
+        } else {
+            // Se carregamos do Storage, garante que a URL também tem a "mochila de segurança"
+            HashStorage.save(session);
+        }
+
+        // Dicionário de Eventos Fixos
+        const EV_PARAMS = {
+            'soneca': { title: 'Soneca', icon: 'fa-moon', color: 'var(--color-soneca)' },
+            'banho': { title: 'Banho', icon: 'fa-bath', color: 'var(--color-banho)' },
+            'alimentacao': { title: 'Alimentação', icon: 'fa-utensils', color: 'var(--color-alimentacao)' },
+            'evacuacao': { title: 'Fralda', icon: 'fa-poop', color: 'var(--color-evacuacao)' }
+        };
+
+        // INIT
+        window.onload = () => {
+            if (session) {
+                applyTheme(session.sexo_bebe);
+                if (session.role === 'baba') {
+                    setupBabaUI();
+                    switchTab('home'); // Navega para a home da babá
+                } else {
+                    setupPaisUI();
+                    switchTab('home'); // Navega para a home dos pais
+                }
+            } else {
+                navigateTo('screen-welcome');
+            }
+        };
+
+        // ==========================================
+        // UI & NAVEGAÇÃO
+        // ==========================================
+        function navigateTo(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+
+            if (screenId === 'screen-pais') {
+                const dateInput = document.getElementById('filtro-data');
+                if (!dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+                fetchTimeline();
+            }
+        }
+
+        /* ==========================================
+           LÓGICA DE NAVEGAÇÃO E TABS
+        ========================================== */
+        function switchTab(tabId) {
+            // Remove a classe active de TODAS as telas (incluindo login/welcome)
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.main-app-ui').forEach(el => el.classList.remove('active'));
+
+            if (tabId === 'home') {
+                if (session.role === 'baba') { // Simplificação, babá vê área de lançamento
+                    document.getElementById('screen-baba').classList.add('active');
+                    if (typeof fetchBabaTimeline === 'function') fetchBabaTimeline(); // Atualiza timeline sempre que volta pra home
+                } else {
+                    document.getElementById('screen-pais').classList.add('active');
+                    fetchTimeline(); // Recarrega sempre que entra na home de Pais
+                }
+            } else if (tabId === 'galeria') {
+                document.getElementById('screen-galeria').classList.add('active');
+                carregarGaleria(); // Carrega as imagens do banco
+            }
+        }
+
+        function showLoader(show, msg = 'Carregando...') {
+            document.getElementById('loader-msg').textContent = msg;
+            const el = document.getElementById('global-loader');
+            show ? el.classList.add('active') : el.classList.remove('active');
+        }
+
+        function applyTheme(sexo) {
+            const themeKey = (sexo || 'N').toUpperCase();
+            const validThemes = ['F', 'M', 'N'];
+            const finalTheme = validThemes.includes(themeKey) ? themeKey : 'N';
+            console.log('[Lucicreide] Aplicando tema:', finalTheme, '| sexo_bebe recebido:', sexo);
+            document.body.className = `theme-${finalTheme}`;
+        }
+
+        // ==========================================
+        // SISTEMA DE MODAIS GENÉRICOS
+        // ==========================================
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // ==========================================
+        // SISTEMA DE ALERTAS CUSTOMIZADOS
+        // ==========================================
+        function showCustomAlert(title, message, isError = false) {
+            const modal = document.getElementById('modal-custom-alert');
+            const iconEl = document.getElementById('alert-icon');
+            const titleEl = document.getElementById('alert-title');
+            const msgEl = document.getElementById('alert-message');
+            const btnEl = document.getElementById('btn-alert-ok');
+
+            titleEl.textContent = title;
+            msgEl.textContent = message;
+
+            if (isError) {
+                iconEl.innerHTML = '<i class="fa-solid fa-circle-exclamation" style="color: #e74c3c;"></i>';
+                btnEl.style.background = '#e74c3c';
+                btnEl.style.color = '#ffffff';
+            } else {
+                iconEl.innerHTML = '<i class="fa-solid fa-check-circle" style="color: var(--accent-color);"></i>';
+                btnEl.style.background = 'var(--accent-color)';
+                btnEl.style.color = '#ffffff';
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeCustomAlert() {
+            document.getElementById('modal-custom-alert').classList.remove('active');
+        }
+
+        function getCurrentTimeStr() {
+            return new Date().toTimeString().substring(0, 5);
+        }
+
+        // ==========================================
+        // AUTENTICAÇÃO E CADASTRO
+        // ==========================================
+        function showLoginTab(role) {
+            // Traz as abas Visuais pra ativo
+            document.getElementById('tab-login-baba').classList.remove('active');
+            document.getElementById('tab-login-pais').classList.remove('active');
+            document.getElementById('tab-login-' + role).classList.add('active');
+
+            // Seta Hidden
+            document.getElementById('login-role').value = role;
+
+            navigateTo('screen-auth');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const senha = document.getElementById('login-senha').value;
+
+            // Determina a aba em que o usuário está tentado logar para filtrar no N8N
+            const definedRole = document.getElementById('login-role').value;
+
+            showLoader(true, 'Autenticando...');
+
+            try {
+                // Requisição GET pra validar o login EXIGINDO o Perfil também
+                const resp = await fetch(`${URL_AUTH}?email=${encodeURIComponent(email)}&senha=${encodeURIComponent(senha)}&perfil=${encodeURIComponent(definedRole)}`);
+
+                if (!resp.ok) {
+                    const errorText = await resp.text();
+                    console.error('[Lucicreide] Erro HTTP:', resp.status, errorText);
+                    throw new Error("Credenciais inválidas ou erro no servidor.");
+                }
+
+                // Tenta ler o texto primeiro para validar se não está vazio
+                const rawText = await resp.text();
+                if (!rawText || rawText.trim() === "") {
+                    console.error('[Lucicreide] Resposta do servidor vazia.');
+                    throw new Error("O servidor retornou uma resposta vazia. Verifique seu fluxo no N8N.");
+                }
+
+                let data;
+                try {
+                    data = JSON.parse(rawText);
+                } catch (e) {
+                    console.error('[Lucicreide] Erro ao processar JSON:', rawText);
+                    throw new Error("O servidor não retornou um JSON válido. Verifique o N8N.");
+                }
+
+                // N8N retorna um Array contendo todas as famílias em que este email/senha bate indicando o perfil.
+                let userArray = Array.isArray(data) ? data : [data];
+                userArray = userArray.filter(u => u && (u.familia_id || u.id));
+
+                if (userArray.length === 0) throw new Error("Usuário não encontrado.");
+
+                if (userArray.length === 1) {
+                    // Loga Direto
+                    finalizarLogin(userArray[0], definedRole);
+                } else {
+                    // Múltiplos Bebês -> Exibe Modal para escolha
+                    const container = document.getElementById('lista-criancas-container');
+                    container.innerHTML = '';
+
+                    userArray.forEach((userData, index) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn btn-outline w-100';
+                        btn.style.textAlign = 'left';
+                        btn.innerHTML = `<i class="fa-solid fa-baby" style="margin-right:10px; color:var(--accent-color)"></i> Rotina de <b>${userData.nome_bebe}</b>`;
+                        btn.onclick = () => {
+                            closeModal('modal-selecionar-crianca');
+                            finalizarLogin(userData, definedRole);
+                        };
+                        container.appendChild(btn);
+                    });
+
+                    document.getElementById('modal-selecionar-crianca').classList.add('active');
+                }
+            } catch (err) {
+                console.error('[Lucicreide] Detalhes do erro de login:', err);
+                showCustomAlert("Erro no Acesso", err.message, true);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function finalizarLogin(userData, definedRole) {
+            const familyId = userData.familia_id || userData.id;
+
+            session = {
+                familia_id: familyId,
+                role: definedRole,
+                nome_logado: userData.nome_logado || (definedRole === 'baba' ? userData.nome_baba : (userData.nome_mae || userData.nome_pai)),
+                perfil_exato: userData.perfil_exato || definedRole,
+                nome_bebe: userData.nome_bebe,
+                sexo_bebe: userData.sexo_bebe
+            };
+
+            SafeStorage.setItem('lucicreide_session', JSON.stringify(session));
+            HashStorage.save(session);
+
+            applyTheme(session.sexo_bebe);
+            if (session.role === 'baba') {
+                setupBabaUI(); switchTab('home');
+            } else {
+                setupPaisUI(); switchTab('home');
+            }
+
+            showCustomAlert("Bem Vindo!", "Login realizado com sucesso!");
+        }
+
+        // ==========================================
+        //         1. CADASTRO DE NOVA FAMÍLIA (POST)
+        // ==========================================
+
+        function openTokenModal() {
+            document.getElementById('token-input').value = '';
+            document.getElementById('modal-token').classList.add('active');
+        }
+
+        function closeTokenModal() {
+            document.getElementById('modal-token').classList.remove('active');
+        }
+
+        async function validarToken() {
+            const token = document.getElementById('token-input').value.trim().toUpperCase();
+            if (!token) return showCustomAlert("Atenção", "Digite um token válido.", true);
+
+            const btn = document.getElementById('btn-validar-token');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validando...';
+            btn.disabled = true;
+
+            try {
+                // Chama o Webhook do Cliente
+                const res = await fetch(`${URL_TOKEN}?codigo=${token}`);
+                const data = await res.json();
+
+                if (data && data.valido) {
+                    // Guarda o token oculto no form e esconde as coisas
+                    document.getElementById('cad-token-usado').value = token;
+                    closeTokenModal();
+                    showCustomAlert("Convite Aceito", "Token válido! Agora você pode criar sua família.");
+                    navigateTo('screen-cadastro');
+                } else {
+                    showCustomAlert("Ops!", "Token Inválido ou Já Utilizado.", true);
+                }
+            } catch (e) {
+                showCustomAlert("Erro de Conexão", "Erro ao checar Token no Servidor.", true);
+                console.error(e);
+            } finally {
+                btn.innerHTML = 'Validar Convite';
+                btn.disabled = false;
+            }
+        }
+
+        async function submitCadastro(e) {
+            e.preventDefault();
+
+            // Garantir que a mãe e bebê preencheram o mínimo
+            const nomeMae = document.getElementById('cad-mae-nome').value;
+            const emailMae = document.getElementById('cad-mae-email').value;
+            const senhaMae = document.getElementById('cad-mae-senha').value;
+            const nomeBebe = document.getElementById('cad-bebe-nome').value;
+            const sexoBebe = document.getElementById('cad-bebe-sexo').value;
+            const tokenUsado = document.getElementById('cad-token-usado').value;
+
+            if (!tokenUsado) {
+                showCustomAlert("Erro de Segurança", "Token vazio ou inválido. Tente novamente.", true); return;
+            }
+
+            const payload = {
+                // Bebê e Token
+                nome_bebe: nomeBebe,
+                sexo_bebe: sexoBebe,
+                token: tokenUsado,
+                // Mãe (Login Principal)
+                nome_mae: nomeMae,
+                email_mae: emailMae,
+                senha_mae: senhaMae,
+                // Pai (Opcional - mas garante chaves JSON para o n8n)
+                nome_pai: document.getElementById('cad-pai-nome').value || '',
+                email_pai: document.getElementById('cad-pai-email').value || '',
+                senha_pai: document.getElementById('cad-pai-senha').value || '',
+                // Babá (Opcional)
+                nome_baba: document.getElementById('cad-baba-nome').value || '',
+                email_baba: document.getElementById('cad-baba-email').value || '',
+                senha_baba: document.getElementById('cad-baba-senha').value || ''
+            };
+
+            showLoader(true, "Criando base da Família...");
+
+            try {
+                const res = await fetch(URL_AUTH, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    showCustomAlert("Muito bem!", "Família cadastrada com sucesso. Agora vocês podem fazer login com seus e-mails e senhas!");
+                    document.getElementById('cadastro-form').reset();
+                    navigateTo('screen-auth');
+                } else {
+                    showCustomAlert("Erro", "Falha no cadastro (Erro na Rota n8n).", true);
+                }
+            } catch (error) {
+                console.error(error);
+                showCustomAlert("Falha de Comunicação", "Ocorreu um erro ao conectar com o banco de dados.", true);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function logout() {
+            SafeStorage.removeItem('lucicreide_session');
+            HashStorage.save(null);
+            session = null;
+            applyTheme('N');
+            navigateTo('screen-welcome');
+        }
+
+        // Modal Esqueci Senha
+        function openForgotModal() {
+            document.getElementById('forgot-modal').classList.add('active');
+        }
+        function closeForgotModal() {
+            document.getElementById('forgot-modal').classList.remove('active');
+        }
+
+        async function submitForgot(e) {
+            e.preventDefault();
+            const payload = {
+                email: document.getElementById('forgot-email').value,
+                nova_senha: document.getElementById('forgot-senha').value
+            };
+
+            closeForgotModal();
+            showLoader(true, "Atualizando senha...");
+
+            try {
+                const resp = await fetch(URL_AUTH, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) throw new Error("Falha.");
+                document.getElementById('forgot-form').reset();
+                showCustomAlert("Senha Atualizada", "Sua senha foi atualizada com sucesso no banco. Tente logar novamente!");
+            } catch (e) {
+                showCustomAlert("Erro", "Não foi possível redefinir a senha. Tente novamente.", true);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        // Modal Editar Babá (Para os Pais)
+        async function submitEditarBaba(e) {
+            e.preventDefault();
+            const payload = {
+                action: 'update_baba',
+                familia_id: session.familia_id,
+                baba_nome: document.getElementById('edit-baba-nome').value,
+                baba_email: document.getElementById('edit-baba-email').value,
+                baba_senha: document.getElementById('edit-baba-senha').value
+            };
+
+            closeModal('modal-editar-baba');
+            showLoader(true, "Atualizando dados da babá...");
+
+            try {
+                const resp = await fetch(URL_AUTH, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) throw new Error("Falha na requisição.");
+                // Opcional: const data = await resp.json();
+
+                document.getElementById('editar-baba-form').reset();
+                showCustomAlert("Acesso Atualizado!", "Os dados da babá foram atualizados com sucesso no banco de dados.");
+            } catch (err) {
+                console.error(err);
+                showCustomAlert("Erro", "Não foi possível atualizar os dados da babá. Tente novamente.", true);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+        function getBebeIcon(sexo) {
+            if (sexo === 'F') return 'fa-heart';          // menina ❤️
+            if (sexo === 'M') return 'fa-rocket';         // menino 🚀
+            return 'fa-heart';                             // neutro ❤️
+        }
+
+        // ==========================================
+        // LÓGICA DA BABÁ E SONECA
+        // ==========================================
+        function setupBabaUI() {
+            document.getElementById('ui-nome-bebe').textContent = session.nome_bebe;
+            document.getElementById('ui-nome-baba').textContent = 'Babá: ' + session.nome_logado;
+            document.getElementById('baba-welcome').textContent = 'Bem-vinda, ' + session.nome_logado + '!';
+            // Atualiza ícone do avatar do bebê conforme o sexo
+            document.querySelector('#screen-baba .profile-avatar i').className = `fa-solid ${getBebeIcon(session.sexo_bebe)}`;
+
+            // Popula os labels dos radios de soneca dinamicamente com o nome do bebê
+            document.getElementById('lbl-radio-dormiu').textContent = `${session.nome_bebe} dormiu`;
+            document.getElementById('lbl-radio-acordou').textContent = `${session.nome_bebe} acordou`;
+
+            // Garante que a classe base do ícone da soneca seja padrão, já que não temos mais estado automático
+            const btnSoneca = document.getElementById('btn-soneca');
+            if (btnSoneca) {
+                let icon = btnSoneca.querySelector('i');
+                if (icon) icon.className = 'fa-solid fa-moon c-soneca';
+                let lbl = btnSoneca.querySelector('#lbl-soneca');
+                if (lbl) lbl.textContent = 'Soneca';
+            }
+
+            fetchBabaTimeline();
+        }
+
+        async function fetchBabaTimeline() {
+            if (!session || !session.familia_id) return;
+            const dataHoje = new Date().toISOString().split('T')[0];
+
+            try {
+                // Tenta buscar no N8N a rotina de hoje
+                const resp = await fetch(`${URL_ROTINA}?familia_id=${session.familia_id}&data=${dataHoje}`);
+                if (!resp.ok) return;
+
+                const data = await resp.json();
+                let timeline = Array.isArray(data) ? data : [data];
+
+                // Renderiza a timeline do dia para a babá
+                const containerBaba = document.getElementById('baba-timeline-container');
+                if (containerBaba) {
+                    let registros = timeline.filter(r => r && r.hora_evento);
+                    if (registros.length === 0) {
+                        containerBaba.innerHTML = `<div class="empty-state"><i class="fa-solid fa-mug-hot"></i><p>Nenhum registro hoje.</p></div>`;
+                    } else {
+                        let sortedRegistros = [...registros].sort((a, b) => b.hora_evento.localeCompare(a.hora_evento));
+                        renderTimeline(sortedRegistros, containerBaba);
+                    }
+                }
+            } catch (err) {
+                console.error('[Lucicreide] Não foi possível verificar timeline no N8N:', err);
+            }
+        }
+
+        async function handleSonecaClick() {
+            openEventModal('soneca');
+        }
+
+        function openEventModal(tipo) {
+            document.getElementById('record-form').reset();
+            document.getElementById('fields-alimentacao').classList.remove('active');
+            document.getElementById('fields-sobra').classList.remove('active');
+            document.getElementById('fields-evacuacao').classList.remove('active');
+            document.getElementById('fields-soneca').classList.remove('active');
+
+            // Remove previous required attributes from soneca radios if they are not active
+            document.getElementById('radio-dormiu').required = false;
+            document.getElementById('radio-acordou').required = false;
+
+            let iconClass = EV_PARAMS[tipo]?.icon || 'fa-star';
+            let color = EV_PARAMS[tipo]?.color || '#fff';
+            let titleText = EV_PARAMS[tipo]?.title || 'Registro';
+
+            document.getElementById('modal-title').innerHTML = `<i class="fa-solid ${iconClass}" style="color:${color}"></i> ${titleText}`;
+            document.getElementById('f-tipo-evento').value = tipo;
+            document.getElementById('f-hora').value = getCurrentTimeStr();
+
+            if (tipo === 'alimentacao') {
+                document.getElementById('fields-alimentacao').classList.add('active');
+            } else if (tipo === 'evacuacao') {
+                document.getElementById('fields-evacuacao').classList.add('active');
+            } else if (tipo === 'soneca') {
+                document.getElementById('fields-soneca').classList.add('active');
+            }
+            document.getElementById('event-modal').classList.add('active');
+        }
+
+        function toggleLeftoverField() {
+            const val = document.getElementById('f-aceite').value;
+            if (val === 'deixou') document.getElementById('fields-sobra').classList.add('active');
+            else document.getElementById('fields-sobra').classList.remove('active');
+        }
+
+        function closeEventModal() {
+            document.getElementById('event-modal').classList.remove('active');
+        }
+
+        async function submitRotina(e) {
+            e.preventDefault();
+            let tipo = document.getElementById('f-tipo-evento').value;
+            let observacao = document.getElementById('f-obs').value || null;
+            let statusEvento = null;
+
+            if (tipo === 'evacuacao') {
+                const tipoEvacuacao = document.getElementById('f-tipo-evacuacao').value;
+                if (tipoEvacuacao) {
+                    observacao = observacao ? `Tipo: ${tipoEvacuacao} | ${observacao}` : `Tipo: ${tipoEvacuacao}`;
+                }
+            }
+
+            if (tipo === 'soneca') {
+                const acaoSoneca = document.querySelector('input[name="f_soneca_acao"]:checked')?.value;
+                if (acaoSoneca === 'dormiu') {
+                    statusEvento = 'iniciado';
+                    const msgSoneca = document.getElementById('lbl-radio-dormiu').textContent;
+                    observacao = observacao ? `${msgSoneca} | ${observacao}` : msgSoneca;
+                } else if (acaoSoneca === 'acordou') {
+                    statusEvento = 'finalizado';
+                    const msgSoneca = document.getElementById('lbl-radio-acordou').textContent;
+                    observacao = observacao ? `${msgSoneca} | ${observacao}` : msgSoneca;
+                }
+            }
+
+            const payload = {
+                familia_id: session.familia_id,
+                data_evento: new Date().toISOString().split('T')[0],
+                hora_evento: document.getElementById('f-hora').value,
+                tipo_evento: tipo,
+                status_evento: statusEvento,
+                descricao: document.getElementById('f-descricao').value || null,
+                status_aceitacao: document.getElementById('f-aceite').value || null,
+                quantidade_deixada: document.getElementById('f-sobra').value || null,
+                observacao: observacao
+            };
+
+            closeEventModal();
+            let msgToast = "Salvo com sucesso!";
+            if (tipo === 'soneca') msgToast = "Soneca registrada!";
+
+            await sendRotina(payload, msgToast);
+
+            // Recarrega a timeline da babá após salvar
+            if (session.role === 'baba') {
+                await fetchBabaTimeline();
+            }
+        }
+
+        async function sendRotina(payload, msgSuccess) {
+            showLoader(true, 'Salvando...');
+            try {
+                const resp = await fetch(URL_ROTINA, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!resp.ok) throw new Error("Erro N8N");
+                showToast(msgSuccess);
+            } catch (error) {
+                showToast("Falha na rede ao salvar!", false);
+            } finally {
+                showLoader(false);
+            }
+        }
+
+
+        // ==========================================
+        // ÁREA DOS PAIS (LINHA DO TEMPO)
+        // ==========================================
+        function setupPaisUI() {
+            document.getElementById('ui-nome-bebe-pais').textContent = session.nome_bebe;
+            document.getElementById('ui-nome-pais').textContent = 'Olá, ' + session.nome_logado;
+            document.getElementById('pais-welcome').textContent = 'Olá, ' + session.nome_logado + '!';
+            // Atualiza ícone do avatar do bebê conforme o sexo
+            document.querySelector('#screen-pais .profile-avatar i').className = `fa-solid ${getBebeIcon(session.sexo_bebe)}`;
+        }
+
+        async function fetchTimeline() {
+            let dataFiltro = document.getElementById('filtro-data').value;
+            const container = document.getElementById('timeline-container');
+
+            if (!session) return;
+
+            // Se for entrada inicial, preenche data de hoje no input e continua
+            if (!dataFiltro) {
+                dataFiltro = new Date().toISOString().split('T')[0];
+                document.getElementById('filtro-data').value = dataFiltro;
+            }
+
+            container.innerHTML = `<div class="empty-state"><div class="spinner" style="margin:0 auto 15px auto;"></div><p>Buscando...</p></div>`;
+
+            try {
+                // Adicionado familia_id na query do N8N para não misturar bebês
+                const resp = await fetch(`${URL_ROTINA}?data=${dataFiltro}&familia_id=${session.familia_id}`);
+                if (!resp.ok) throw new Error("N8N Error");
+
+                let registros = await resp.json();
+                if (registros.data) registros = registros.data; // fallback se n8n envolver em data
+                if (!Array.isArray(registros)) registros = [registros]; // fallback p/ row unica
+
+                // Filtra nulos que o N8N pode mandar
+                registros = registros.filter(r => r && r.hora_evento);
+
+                if (registros.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-mug-hot"></i><p>Nada registrado ainda hoje.</p></div>`;
+                    return;
+                }
+
+                // Ordenar por hora DECRESCENTE (Mais novos no topo)
+                registros.sort((a, b) => b.hora_evento.localeCompare(a.hora_evento));
+
+                renderTimeline(registros, container);
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="empty-state" style="color:#eb2f06"><i class="fa-solid fa-triangle-exclamation"></i><p>Falha ao atualizar.</p></div>`;
+            }
+        }
+
+        function renderTimeline(registros, container) {
+            const lbls = { 'comeu_tudo': 'Comeu tudo', 'deixou': 'Deixou uma parte', 'recusou': 'Recusou' };
+            let html = '<div class="timeline">';
+
+            // Pós Processamento: Agrupar Sonecas (Iniciado -> Finalizado)
+            // Isso é complexo mas garante visual legal. Para simplificar, vamos mostrar tudo como eventos isolados,
+            // mas as sonecas finalizadas mostram a observacao calculada ("Dormiu de X a Y").
+
+            registros.forEach(reg => {
+                const info = EV_PARAMS[reg.tipo_evento] || { title: reg.tipo_evento, icon: 'fa-star' };
+
+                let details = '';
+                // Render alimentacao
+                if (reg.tipo_evento === 'alimentacao' && reg.descricao) {
+                    details += `<strong>${reg.descricao}</strong><br>`;
+                    if (reg.status_aceitacao) details += `<span class="status-badge status-${reg.status_aceitacao}">${lbls[reg.status_aceitacao]}</span>`;
+                    if (reg.status_aceitacao === 'deixou' && reg.quantidade_deixada) details += `<br><small style="display:block;margin-top:5px"><b>Sobrou:</b> ${reg.quantidade_deixada}</small>`;
+                }
+
+                // Render Soneca especifica
+                if (reg.tipo_evento === 'soneca') {
+                    if (reg.status_evento === 'iniciado') details += `<i class="fa-solid fa-play" style="color:var(--success-color)"></i> Adormeceu...`;
+                    if (reg.status_evento === 'finalizado') details += `<i class="fa-solid fa-stop" style="color:var(--accent-color)"></i> Acordou.`;
+                }
+
+                if (reg.observacao) {
+                    details += `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(0,0,0,0.1); font-size:0.9rem; font-style:italic">"${reg.observacao}"</div>`;
+                }
+
+                html += `
+                <div class="timeline-item type-${reg.tipo_evento}">
+                    <div class="glass timeline-card">
+                        <div class="timeline-time"><i class="fa-regular fa-clock"></i> ${reg.hora_evento.substring(0, 5)}</div>
+                        <div class="timeline-title">
+                            <span style="display:flex; align-items:center; gap:8px"><i class="fa-solid ${info.icon}"></i> ${info.title}</span>
+                            ${reg.status_evento ? `<span class="timeline-duration">${reg.status_evento === 'iniciado' ? 'Início' : 'Fim'}</span>` : ''}
+                        </div>
+                        ${details ? `<div class="timeline-desc">${details}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        /* ==========================================
+           GALERIA DE FOTOS (Câmera, Compressão Base64 e N8N)
+        =========================================== */
+        let imagemBase64Atual = null;
+
+        function abrirModalGaleria() {
+            document.getElementById('foto-legenda').value = '';
+            document.getElementById('foto-preview-img').src = '';
+            document.getElementById('foto-preview-img').style.display = 'none';
+            document.getElementById('foto-placeholder').style.display = 'block';
+            imagemBase64Atual = null;
+            document.getElementById('btn-salvar-foto').innerHTML = 'Salvar Novo Momento';
+            document.getElementById('modal-add-foto').classList.add('active');
+        }
+
+        // Lógica de redução pesada da foto com Canvas (Para não travar o banco do N8N)
+        function processarImagem(evento) {
+            const arquivo = evento.target.files[0];
+            if (!arquivo) return;
+
+            // Converter para URL legível no HTML para preview imediato
+            const urlTemporaria = URL.createObjectURL(arquivo);
+            const imgPreview = document.getElementById('foto-preview-img');
+            imgPreview.src = urlTemporaria;
+            imgPreview.style.display = 'block';
+            document.getElementById('foto-placeholder').style.display = 'none';
+
+            // Carregar a imagem no Canvas para redimensionar (Max 800px)
+            const imgTemporaria = new Image();
+            imgTemporaria.src = urlTemporaria;
+            imgTemporaria.onload = () => {
+                const MAX_LARGURA = 800; // Resolução Polaroid
+                const MAX_ALTURA = 800;
+                let largura = imgTemporaria.width;
+                let altura = imgTemporaria.height;
+
+                // Regra de Três para manter Proporção
+                if (largura > altura) {
+                    if (largura > MAX_LARGURA) {
+                        altura *= MAX_LARGURA / largura;
+                        largura = MAX_LARGURA;
+                    }
+                } else {
+                    if (altura > MAX_ALTURA) {
+                        largura *= MAX_ALTURA / altura;
+                        altura = MAX_ALTURA;
+                    }
+                }
+
+                const canvas = document.getElementById('foto-canvas');
+                canvas.width = largura;
+                canvas.height = altura;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(imgTemporaria, 0, 0, largura, altura);
+
+                // Converte de volta para Base64 (JPEG, Qualidade 0.7 para compactar bastante)
+                imagemBase64Atual = canvas.toDataURL("image/jpeg", 0.7);
+            };
+        }
+
+        async function salvarFoto() {
+            if (!imagemBase64Atual) {
+                showCustomAlert("Atenção", "Por favor, selecione ou tire uma foto primeiro.", true);
+                return;
+            }
+
+            const legenda = document.getElementById('foto-legenda').value || "Momento inesquecível";
+            const btn = document.getElementById('btn-salvar-foto');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+
+            const payload = {
+                familia_id: session.familia_id,
+                data_foto: new Date().toISOString(),
+                legenda: legenda,
+                imagem_base64: imagemBase64Atual.split(',')[1] // Remove o Mime Type enviado ao N8N
+            };
+
+            try {
+                const res = await fetch(URL_GALERIA, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    closeModal('modal-add-foto');
+                    showCustomAlert("Foto Revelada!", "Sua foto Polaroid foi adicionada ao álbum.");
+                    imagemBase64Atual = null; // limpa após save
+                    carregarGaleria(); // Atualiza a tela local com a foto nova
+                } else {
+                    throw new Error("Erro no endpoint");
+                }
+            } catch (e) {
+                console.error(e);
+                showCustomAlert("Erro", "Falha ao enviar a foto para a nuvem.", true);
+                btn.innerHTML = 'Tentar Novamente';
+            }
+        }
+
+        async function carregarGaleria() {
+            const container = document.getElementById('gallery-container');
+            const emptyState = document.getElementById('gallery-empty');
+
+            container.innerHTML = '<div style="grid-column: 1 / -1; text-align:center; padding: 2rem;"><i class="fas fa-circle-notch fa-spin fa-2x"></i><br>Revelando fotos...</div>';
+
+            try {
+                const res = await fetch(`${URL_GALERIA}?familia_id=${session.familia_id}`);
+
+                let data = [];
+                // N8N pode retornar HTML de Erro 404/500 se o Webhook estiver desligado. Evita quebrar o JSON.parse
+                const contentType = res.headers.get('content-type');
+                if (res.ok && contentType && contentType.includes('application/json')) {
+                    data = await res.json();
+                }
+
+                container.innerHTML = ''; // limpa o loading spinner
+
+                if (!data || data.length === 0) {
+                    emptyState.style.display = 'block';
+                } else {
+                    emptyState.style.display = 'none';
+
+                    data.forEach(imgData => {
+                        // Trata retorno cru do n8n se for nested
+                        if (!imgData.imagem_base64) return;
+                        // Data format (Apenas dia/mês)
+                        const d = new Date(imgData.data_foto);
+                        const diaMes = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`;
+
+                        // Verifica se o N8N retornou o base64 puro (sem o mime type) e adiciona para o HTML renderizar
+                        let imgSrc = imgData.imagem_base64;
+                        if (!imgSrc.startsWith('data:')) {
+                            imgSrc = 'data:image/jpeg;base64,' + imgSrc;
+                        }
+
+                        const polaroid = document.createElement('div');
+                        polaroid.className = 'polaroid';
+                        polaroid.onclick = () => abrirModalVisualizarFoto(imgSrc, imgData.legenda);
+                        polaroid.innerHTML = `
+                            <img src="${imgSrc}" alt="${imgData.legenda}">
+                            <div class="polaroid-caption">${imgData.legenda || '💖'}</div>
+                            <div class="polaroid-date">${diaMes}</div>
+                        `;
+                        container.appendChild(polaroid);
+                    });
+                }
+
+            } catch (e) {
+                console.error("Erro na galeria:", e);
+                showCustomAlert("Erro de Galeria", "Não foi possível carregar as fotos da nuvem.", true);
+                container.innerHTML = '<div style="color:var(--text-dark); text-align:center">Erro ao revelar fotos.</div>';
+            }
+        }
+
+        async function compartilharFoto() {
+            const imgSrc = document.getElementById('view-foto-img').src;
+            const legenda = document.getElementById('view-foto-title').innerText;
+            const btnCompartilhar = document.getElementById('btn-share-foto');
+
+            if (!imgSrc.startsWith('data:image')) {
+                showCustomAlert("Aviso", "A imagem ainda não está pronta para ser compartilhada.");
+                return;
+            }
+
+            try {
+                btnCompartilhar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extraindo foto...';
+                // Converter Base64 para Blob para usar a Web Share API
+                const res = await fetch(imgSrc);
+                const blob = await res.blob();
+                const file = new File([blob], 'momento.jpg', { type: 'image/jpeg' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'Lucicreide - Álbum',
+                        text: legenda,
+                        files: [file]
+                    });
+                } else {
+                    showCustomAlert("Aviso", "O compartilhamento direto de imagens com WhatsApp/Insta não é suportado pelo seu navegador neste dispositivo.");
+                }
+            } catch (error) {
+                console.error("Erro ao compartilhar", error);
+            } finally {
+                btnCompartilhar.innerHTML = '<i class="fa-solid fa-share-nodes"></i> Compartilhar Foto';
+            }
+        }
+
+        function abrirModalVisualizarFoto(imgSrc, legenda) {
+            document.getElementById('view-foto-img').src = imgSrc;
+            document.getElementById('view-foto-title').innerText = legenda || 'Momento';
+
+            const shareContainer = document.getElementById('share-actions-container');
+            // Só libera o botão de compartilhar se for da conta Pais
+            if (session.role === 'pais') {
+                shareContainer.style.display = 'flex';
+                document.getElementById('btn-share-foto').onclick = compartilharFoto;
+            } else {
+                shareContainer.style.display = 'none';
+            }
+
+            document.getElementById('modal-view-foto').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+
+    </script>
+</body>
+
+</html>
