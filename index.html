@@ -1220,6 +1220,27 @@
                     </div>
                 </div>
 
+                <!-- Ações Rápidas (Para os Pais também registrarem) -->
+                <p class="text-center text-light mb-3" style="font-size: 0.95rem;">Ações Rápidas:</p>
+                <div class="action-grid mb-4">
+                    <div class="action-card glass card-soneca" onclick="handleSonecaClick()">
+                        <i class="fa-solid fa-moon c-soneca"></i>
+                        <span>Soneca</span>
+                    </div>
+                    <div class="action-card glass" onclick="openEventModal('banho')">
+                        <i class="fa-solid fa-bath c-banho"></i>
+                        <span>Banho</span>
+                    </div>
+                    <div class="action-card glass" onclick="openEventModal('alimentacao')">
+                        <i class="fa-solid fa-utensils c-alimentacao"></i>
+                        <span>Alimentação</span>
+                    </div>
+                    <div class="action-card glass" onclick="openEventModal('evacuacao')">
+                        <i class="fa-solid fa-poop c-evacuacao"></i>
+                        <span>Fralda</span>
+                    </div>
+                </div>
+
                 <div class="glass" style="padding: 15px; margin-bottom: 20px;">
                     <label class="form-label mb-2">Visualizando data:</label>
                     <input type="date" id="filtro-data" class="form-control" onchange="fetchTimeline()">
@@ -2083,13 +2104,13 @@
             document.getElementById('lbl-radio-acordou').textContent = `${session.nome_bebe} acordou`;
 
             // Garante que a classe base do ícone da soneca seja padrão, já que não temos mais estado automático
-            const btnSoneca = document.getElementById('btn-soneca');
-            if (btnSoneca) {
-                let icon = btnSoneca.querySelector('i');
+            const botoesSoneca = document.querySelectorAll('.card-soneca');
+            botoesSoneca.forEach(btn => {
+                let icon = btn.querySelector('i');
                 if (icon) icon.className = 'fa-solid fa-moon c-soneca';
-                let lbl = btnSoneca.querySelector('#lbl-soneca');
-                if (lbl) lbl.textContent = 'Soneca';
-            }
+                let span = btn.querySelector('span');
+                if (span) span.textContent = 'Soneca';
+            });
 
             fetchBabaTimeline();
         }
@@ -2209,9 +2230,11 @@
 
             await sendRotina(payload, msgToast);
 
-            // Recarrega a timeline da babá após salvar
+            // Recarrega a timeline após salvar dependendo de quem logou
             if (session.role === 'baba') {
                 await fetchBabaTimeline();
+            } else {
+                await fetchTimeline();
             }
         }
 
@@ -2240,6 +2263,10 @@
             document.getElementById('ui-nome-bebe-pais').textContent = session.nome_bebe;
             // Atualiza ícone do avatar do bebê conforme o sexo
             document.querySelector('#screen-pais .profile-avatar i').className = `fa-solid ${getBebeIcon(session.sexo_bebe)}`;
+
+            // Popula os labels dos radios de soneca dinamicamente com o nome do bebê
+            document.getElementById('lbl-radio-dormiu').textContent = `${session.nome_bebe} dormiu`;
+            document.getElementById('lbl-radio-acordou').textContent = `${session.nome_bebe} acordou`;
         }
 
         async function fetchTimeline() {
