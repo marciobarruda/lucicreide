@@ -1137,12 +1137,7 @@
         <div id="screen-baba" class="screen main-app-ui">
             <!-- Header Babá -->
             <div class="app-header">
-                <div class="header-content">
-                    <div>
-                        <h1 class="font-outfit" id="baba-welcome">Bem-vinda, Babá!</h1>
-                        <p class="font-inter" style="opacity: 0.8; font-size: 0.9rem;">Rotina do <span
-                                id="lbl-bebe-baba" style="font-weight: 600;">Bebê</span></p>
-                    </div>
+                <div class="header-content" style="display:flex; justify-content:flex-end; width:100%;">
                     <!-- Logout Sair -->
                     <button class="back-btn" onclick="logout()"
                         style="background: #2d3436; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><i
@@ -1151,12 +1146,10 @@
             </div>
 
             <div class="profile-header">
-                <div class="profile-obj">
+                <div class="profile-obj" style="margin-bottom:10px; align-items:center;">
                     <div class="profile-avatar"><i class="fa-solid fa-baby"></i></div>
-                    <div>
-                        <h3 id="ui-nome-bebe" style="font-size:1.2rem">Nome Bebê</h3>
-                        <p class="text-light" id="ui-nome-baba" style="font-size:0.9rem; font-weight:500;">Bá: Nome Baba
-                        </p>
+                    <div style="flex:1">
+                        <h3 id="ui-nome-bebe" style="font-size:1.5rem; margin:0;">Nome Bebê</h3>
                     </div>
                 </div>
             </div>
@@ -1206,11 +1199,7 @@
         <div id="screen-pais" class="screen main-app-ui">
             <div class="app-header" style="padding-bottom: 2rem;">
                 <div class="header-content"
-                    style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                    <div>
-                        <h1 class="font-outfit pb-0" style="font-size: 1.5rem;" id="pais-welcome">Família</h1>
-                        <p class="font-inter pt-0" style="opacity: 0.8; font-size: 0.9rem;">Timeline do Bebê</p>
-                    </div>
+                    style="display:flex; justify-content:flex-end; align-items:center; width:100%;">
                     <!-- Logout sutil -->
                     <button class="back-btn" onclick="logout()"
                         style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.3); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color:#fff; cursor:pointer; backdrop-filter:blur(4px); letter-spacing:0.3px;"><i
@@ -1223,15 +1212,11 @@
                     <div class="profile-obj" style="margin-bottom:10px; align-items:center;">
                         <div class="profile-avatar"><i class="fa-solid fa-heart"></i></div>
                         <div style="flex:1">
-                            <h3 id="ui-nome-bebe-pais" style="font-size:1.2rem">Nome Bebê</h3>
-                            <p class="text-light" id="ui-nome-pais" style="font-size:0.9rem; font-weight:500;">Família
-                            </p>
+                            <h3 id="ui-nome-bebe-pais" style="font-size:1.5rem; margin:0;">Nome Bebê</h3>
                         </div>
                         <button onclick="openModal('modal-editar-baba')"
-                            style="background:transparent; border:none; padding:10px; cursor:pointer;"
-                            title="Gerenciar Babá">
-                            <i class="fas fa-cog" style="color:var(--text-light); font-size:1.4rem;"></i>
-                        </button>
+                            style="background:none; border:none; color:var(--text-light); opacity:0.6; padding:10px; cursor:pointer;"><i
+                                class="fa-solid fa-gear" style="font-size:1.2rem;"></i></button>
                     </div>
                 </div>
 
@@ -2090,8 +2075,6 @@
         // ==========================================
         function setupBabaUI() {
             document.getElementById('ui-nome-bebe').textContent = session.nome_bebe;
-            document.getElementById('ui-nome-baba').textContent = 'Babá: ' + session.nome_logado;
-            document.getElementById('baba-welcome').textContent = 'Bem-vinda, ' + session.nome_logado + '!';
             // Atualiza ícone do avatar do bebê conforme o sexo
             document.querySelector('#screen-baba .profile-avatar i').className = `fa-solid ${getBebeIcon(session.sexo_bebe)}`;
 
@@ -2255,8 +2238,6 @@
         // ==========================================
         function setupPaisUI() {
             document.getElementById('ui-nome-bebe-pais').textContent = session.nome_bebe;
-            document.getElementById('ui-nome-pais').textContent = 'Olá, ' + session.nome_logado;
-            document.getElementById('pais-welcome').textContent = 'Olá, ' + session.nome_logado + '!';
             // Atualiza ícone do avatar do bebê conforme o sexo
             document.querySelector('#screen-pais .profile-avatar i').className = `fa-solid ${getBebeIcon(session.sexo_bebe)}`;
         }
