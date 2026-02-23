@@ -1017,7 +1017,7 @@
                 </div>
 
                 <form id="form-login" onsubmit="handleLogin(event)">
-                    <input type="hidden" id="login-role" value="baba">
+                    <input type="hidden" id="login-role" value="">
 
                     <div class="form-group">
                         <label class="form-label">E-mail Cadastrado:</label>
@@ -1026,13 +1026,26 @@
 
                     <div class="form-group">
                         <label class="form-label">Senha:</label>
-                        <input type="password" id="login-senha" class="form-control" required placeholder="****">
+                        <div style="position: relative;">
+                            <input type="password" id="login-senha" class="form-control" required placeholder="****"
+                                style="padding-right: 45px;">
+                            <button type="button" onclick="toggleSenha()"
+                                style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:none; color:var(--text-light); cursor:pointer; font-size:1.1rem; padding:5px;"
+                                aria-label="Mostrar senha">
+                                <i id="icon-toggle-senha" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <button type="submit" class="btn btn-primary mt-2">
                         <i class="fa-solid fa-arrow-right-to-bracket"></i> Entrar
                     </button>
                 </form>
+
+                <button type="button" id="btn-biometric" class="btn btn-outline mt-2" onclick="handleBiometricLogin()"
+                    style="display:none; width:100%; gap:8px;">
+                    <i class="fa-solid fa-fingerprint"></i> Entrar com Biometria
+                </button>
 
                 <button type="button" class="btn-link" onclick="openForgotModal()">Esqueci minha senha</button>
 
@@ -1338,6 +1351,17 @@
                 <!-- Campos Condicionais: Alimentação -->
                 <div id="fields-alimentacao" class="conditional-field">
                     <div class="form-group">
+                        <label class="form-label">Tipo de Refeição:</label>
+                        <select id="f-tipo-alimentacao" class="form-control">
+                            <option value="">Selecione...</option>
+                            <option value="Café da manhã">Café da manhã ☕</option>
+                            <option value="Lanche">Lanche 🍎</option>
+                            <option value="Almoço">Almoço 🍽️</option>
+                            <option value="Jantar">Jantar 🌙</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
                         <label class="form-label">O que foi oferecido?</label>
                         <input type="text" id="f-descricao" class="form-control" placeholder="Ex: Papinha de maçã">
                     </div>
@@ -1362,7 +1386,7 @@
                 <div id="fields-evacuacao" class="conditional-field">
                     <div class="form-group">
                         <label class="form-label">Qual foi o tipo?</label>
-                        <select id="f-tipo-evacuacao" class="form-control">
+                        <select id="f-tipo-evacuacao" class="form-control" required>
                             <option value="">Selecione...</option>
                             <option value="Xixi">Xixi 💧</option>
                             <option value="Cocô (Pastoso)">Cocô (Pastoso) 💩</option>
@@ -1799,6 +1823,96 @@
         // ==========================================
         // AUTENTICAÇÃO E CADASTRO
         // ==========================================
+
+        // Toggle de visibilidade de senha
+        function toggleSenha() {
+            const input = document.getElementById('login-senha');
+            const icon = document.getElementById('icon-toggle-senha');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        // Biometria via Credential Management API
+        function checkBiometricAvailability() {
+            const btnBio = document.getElementById('btn-biometric');
+            if (window.PasswordCredential && navigator.credentials) {
+                // Verifica se há credenciais salvas
+                const savedCreds = SafeStorage.getItem('lucicreide_has_credentials');
+                if (savedCreds === 'true') {
+                    btnBio.style.display = 'flex';
+                } else {
+                    btnBio.style.display = 'none';
+                }
+            } else {
+                btnBio.style.display = 'none';
+            }
+        }
+
+        async function handleBiometricLogin() {
+            if (!window.PasswordCredential || !navigator.credentials) {
+                showCustomAlert("Indisponível", "Seu dispositivo não suporta login por biometria.", true);
+                return;
+            }
+
+            try {
+                const credential = await navigator.credentials.get({
+                    password: true,
+                    mediation: 'required'
+                });
+
+                if (credential) {
+                    document.getElementById('login-email').value = credential.id;
+                    document.getElementById('login-senha').value = credential.password;
+
+                    // Tenta recuperar a role salva
+                    const savedRole = SafeStorage.getItem('lucicreide_last_role');
+                    if (savedRole) {
+                        document.getElementById('login-role').value = savedRole;
+                        // Ativa a tab visual correspondente
+                        document.getElementById('tab-login-baba').classList.remove('active');
+                        document.getElementById('tab-login-pais').classList.remove('active');
+                        document.getElementById('tab-login-' + savedRole).classList.add('active');
+                    }
+
+                    // Dispara o submit automático
+                    document.getElementById('form-login').dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            } catch (err) {
+                console.warn('[Lucicreide] Biometria cancelada ou indisponível:', err);
+            }
+        }
+
+        function storeBiometricCredentials() {
+            if (!window.PasswordCredential || !navigator.credentials) return;
+
+            try {
+                const email = document.getElementById('login-email').value;
+                const senha = document.getElementById('login-senha').value;
+                const role = document.getElementById('login-role').value;
+
+                if (!email || !senha) return;
+
+                const cred = new PasswordCredential({
+                    id: email,
+                    password: senha,
+                    name: session?.nome_logado || email
+                });
+
+                navigator.credentials.store(cred).then(() => {
+                    SafeStorage.setItem('lucicreide_has_credentials', 'true');
+                    SafeStorage.setItem('lucicreide_last_role', role);
+                    console.log('[Lucicreide] Credenciais salvas para biometria.');
+                });
+            } catch (e) {
+                console.warn('[Lucicreide] Não foi possível salvar credenciais:', e);
+            }
+        }
+
         function showLoginTab(role) {
             // Traz as abas Visuais pra ativo
             document.getElementById('tab-login-baba').classList.remove('active');
@@ -1809,6 +1923,9 @@
             document.getElementById('login-role').value = role;
 
             navigateTo('screen-auth');
+
+            // Verifica se há credenciais salvas para biometria
+            checkBiometricAvailability();
         }
 
         async function handleLogin(e) {
@@ -1819,6 +1936,11 @@
             // Determina a aba em que o usuário está tentado logar para filtrar no N8N
             const definedRole = document.getElementById('login-role').value;
 
+            if (!definedRole) {
+                showCustomAlert("Atenção", "Selecione seu perfil: Babá ou Pais.", true);
+                return;
+            }
+
             showLoader(true, 'Autenticando...');
 
             try {
@@ -1828,14 +1950,14 @@
                 if (!resp.ok) {
                     const errorText = await resp.text();
                     console.error('[Lucicreide] Erro HTTP:', resp.status, errorText);
-                    throw new Error("Credenciais inválidas ou erro no servidor.");
+                    throw new Error("Ops! Não conseguimos te identificar.\nVerifique seus dados de acesso. Se for o seu primeiro login, confirme se o código de convite foi ativado corretamente.");
                 }
 
                 // Tenta ler o texto primeiro para validar se não está vazio
                 const rawText = await resp.text();
                 if (!rawText || rawText.trim() === "") {
                     console.error('[Lucicreide] Resposta do servidor vazia.');
-                    throw new Error("O servidor retornou uma resposta vazia. Verifique seu fluxo no N8N.");
+                    throw new Error("Ops! Não conseguimos te identificar.\nVerifique seus dados de acesso. Se for o seu primeiro login, confirme se o código de convite foi ativado corretamente.");
                 }
 
                 let data;
@@ -1843,14 +1965,14 @@
                     data = JSON.parse(rawText);
                 } catch (e) {
                     console.error('[Lucicreide] Erro ao processar JSON:', rawText);
-                    throw new Error("O servidor não retornou um JSON válido. Verifique o N8N.");
+                    throw new Error("Ops! Não conseguimos te identificar.\nVerifique seus dados de acesso. Se for o seu primeiro login, confirme se o código de convite foi ativado corretamente.");
                 }
 
                 // N8N retorna um Array contendo todas as famílias em que este email/senha bate indicando o perfil.
                 let userArray = Array.isArray(data) ? data : [data];
                 userArray = userArray.filter(u => u && (u.familia_id || u.id));
 
-                if (userArray.length === 0) throw new Error("Usuário não encontrado.");
+                if (userArray.length === 0) throw new Error("Ops! Não conseguimos te identificar.\nVerifique seus dados de acesso. Se for o seu primeiro login, confirme se o código de convite foi ativado corretamente.");
 
                 if (userArray.length === 1) {
                     // Loga Direto
@@ -1893,6 +2015,9 @@
                 nome_bebe: userData.nome_bebe,
                 sexo_bebe: userData.sexo_bebe
             };
+
+            // Salva credenciais para biometria futura
+            storeBiometricCredentials();
 
             SafeStorage.setItem('lucicreide_session', JSON.stringify(session));
             HashStorage.save(session);
@@ -2131,6 +2256,8 @@
                 const containerBaba = document.getElementById('baba-timeline-container');
                 if (containerBaba) {
                     let registros = timeline.filter(r => r && r.hora_evento);
+                    console.log('[Lucicreide] Babá timeline bruta:', registros.length, 'registros. familia_id sessão:', session.familia_id);
+                    registros = registros.filter(r => String(r.familia_id || '') === String(session.familia_id));
                     if (registros.length === 0) {
                         containerBaba.innerHTML = `<div class="empty-state"><i class="fa-solid fa-mug-hot"></i><p>Nenhum registro hoje.</p></div>`;
                     } else {
@@ -2154,9 +2281,11 @@
             document.getElementById('fields-evacuacao').classList.remove('active');
             document.getElementById('fields-soneca').classList.remove('active');
 
-            // Remove previous required attributes from soneca radios if they are not active
+            // Remove required attributes de campos condicionais (só ativa no tipo certo)
             document.getElementById('radio-dormiu').required = false;
             document.getElementById('radio-acordou').required = false;
+            document.getElementById('f-tipo-evacuacao').required = false;
+            document.getElementById('f-tipo-alimentacao').required = false;
 
             let iconClass = EV_PARAMS[tipo]?.icon || 'fa-star';
             let color = EV_PARAMS[tipo]?.color || '#fff';
@@ -2168,10 +2297,14 @@
 
             if (tipo === 'alimentacao') {
                 document.getElementById('fields-alimentacao').classList.add('active');
+                document.getElementById('f-tipo-alimentacao').required = true;
             } else if (tipo === 'evacuacao') {
                 document.getElementById('fields-evacuacao').classList.add('active');
+                document.getElementById('f-tipo-evacuacao').required = true;
             } else if (tipo === 'soneca') {
                 document.getElementById('fields-soneca').classList.add('active');
+                document.getElementById('radio-dormiu').required = true;
+                document.getElementById('radio-acordou').required = true;
             }
             document.getElementById('event-modal').classList.add('active');
         }
@@ -2192,15 +2325,39 @@
             let observacao = document.getElementById('f-obs').value || null;
             let statusEvento = null;
 
-            if (tipo === 'evacuacao') {
-                const tipoEvacuacao = document.getElementById('f-tipo-evacuacao').value;
-                if (tipoEvacuacao) {
-                    observacao = observacao ? `Tipo: ${tipoEvacuacao} | ${observacao}` : `Tipo: ${tipoEvacuacao}`;
+            // Validação e montagem: Alimentação
+            if (tipo === 'alimentacao') {
+                const tipoAlimentacao = document.getElementById('f-tipo-alimentacao').value;
+                if (!tipoAlimentacao) {
+                    showCustomAlert("Atenção", "Selecione o tipo de refeição.", true);
+                    return;
+                }
+                const descricaoOriginal = document.getElementById('f-descricao').value;
+                // Concatena tipo + descrição para enviar junto
+                if (descricaoOriginal) {
+                    document.getElementById('f-descricao').value = `${tipoAlimentacao} - ${descricaoOriginal}`;
+                } else {
+                    document.getElementById('f-descricao').value = tipoAlimentacao;
                 }
             }
 
+            // Validação e montagem: Fralda (Evacuação)
+            if (tipo === 'evacuacao') {
+                const tipoEvacuacao = document.getElementById('f-tipo-evacuacao').value;
+                if (!tipoEvacuacao) {
+                    showCustomAlert("Atenção", "Selecione o tipo de fralda.", true);
+                    return;
+                }
+                observacao = observacao ? `Tipo: ${tipoEvacuacao} | ${observacao}` : `Tipo: ${tipoEvacuacao}`;
+            }
+
+            // Validação e montagem: Soneca
             if (tipo === 'soneca') {
                 const acaoSoneca = document.querySelector('input[name="f_soneca_acao"]:checked')?.value;
+                if (!acaoSoneca) {
+                    showCustomAlert("Atenção", "Selecione se o bebê dormiu ou acordou.", true);
+                    return;
+                }
                 if (acaoSoneca === 'dormiu') {
                     statusEvento = 'iniciado';
                     const msgSoneca = document.getElementById('lbl-radio-dormiu').textContent;
@@ -2294,6 +2451,13 @@
 
                 // Filtra nulos que o N8N pode mandar
                 registros = registros.filter(r => r && r.hora_evento);
+                console.log('[Lucicreide] Timeline bruta:', registros.length, 'registros. familia_id sessão:', session.familia_id, 'dataFiltro:', dataFiltro);
+                if (registros.length > 0) console.log('[Lucicreide] Exemplo registro:', JSON.stringify(registros[0]));
+                // Filtra client-side por familia_id e data para garantir consistência
+                registros = registros.filter(r => String(r.familia_id || '') === String(session.familia_id));
+                if (dataFiltro) {
+                    registros = registros.filter(r => (r.data_evento || '').substring(0, 10) === dataFiltro);
+                }
 
                 if (registros.length === 0) {
                     container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-mug-hot"></i><p>Nada registrado ainda hoje.</p></div>`;
